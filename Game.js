@@ -6,6 +6,13 @@ class Game{
     }
     //  יוצר את המשחק  - 2 קלפים ללקוח  ו קלף אחד לדילר
     prepareGame(){
+        fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1')
+        .then(res => res.json())
+        .then()
+        .then()
+        .then()
+        .then()
+        .then()
 
     }
     // הגדרה של תור של הלקוח 
@@ -20,6 +27,9 @@ class Game{
 
     }
     calculateWin(){
+
+    }
+    winOrLoseBrd(){
 
     }
 
