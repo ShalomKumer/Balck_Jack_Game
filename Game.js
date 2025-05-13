@@ -14,9 +14,6 @@ class Game{
         .then(res => res.json())
         .then()
         .then()
-        .then()
-        .then()
-        .then()
 
     }
     // הגדרה של תור של הלקוח 
