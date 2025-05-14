@@ -1,124 +1,70 @@
-const btnHit = document.querySelector(".hit");
-const btnstp = document.querySelector(".stop");
-const inBord = document.querySelector(".inBord")
-// this.states = {
-//   SHUFFLING:  "shuffling",
-//   DEALING:    "dealing",
-//   PLAYER_TURN:"player-turn",
-//   DEALER_TURN:"dealer-turn",
-//   FINISHED:   "finished"
-// };
-class Game {
-  constructor() {
+export class Game {
+  constructor(deck) {
+    this.deck = deck;
     this.playerCards = []; // seva value of player cards
     this.dilerCards = []; // seva value of diler cards
-    this.gameStatus = 0; // ceep trak of fase of Game for differnt bords
-    this.deckId = null; // creating NEW deck for etch Game
-    this.turn = 0; // player - 0, diler - 1
-
-    fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=6")
-      .then((res) => res.json())
-      .then((data) => {
-        this.deckId = data.deck_id;
-      });
+    this.status = 0; // ceep trak of fase of Game
   }
 
+  static calcSum(hend) {
+    let sum = hand.reduce((a, b) => a + b, 0);
+    let aces = hand.filter((v) => v === 11).length;
+    while (sum > 21 && aces > 0) {
+      sum -= 10; // להפוך ACE מ-11 ל-1
+      aces -= 1;
+    }
+    return sum;
+  }
   //  יוצר את המשחק  - 2 קלפים ללקוח  ו 2 לדילר
-  prepareGame() {
+  async prepareGame() {
     this.gameStatus = 1;
-    this.getOneCard(1);
-    this.getOneCard(1);
-    this.getOneCard(0);
-    this.getOneCard(0);
+    this.playerCards = [];
+    this.dilerCards = [];
+    for (let i = 0; i < 2; i++) {
+      this.playerCards.push(await this.deck.getOneCard());
+      this.dilerCards.push(await this.deck.getOneCard());
+    }
   }
+
   // הגדרה של תור של הלקוח
-  playerTurn() {
-    this.gameStatus = 2;
-    if (this.sumOfPlayer() < 21 && this.sumOfPlayer() != 21) {
-      btnHit.addEventListener("click", ()=>{this.getOneCard(0)});
-      btnstp.addEventListener("click", ()=>{this.dilerTurn()});
-    } else {
-      btnHit.disabled = true;
+  async playerTurn() {
+    if (this.state !== "player") return; // stop the fun
+
+    this.playerCards.push(await this.deck.getOneCard());
+    if (Game.calcSum(this.playerCards) > 21) {
+      this.state = "finished";
+      return "bust";
     }
+    return "continue";
   }
-  dilerTurn() {
-    this.gameStatus = 3;
-    if (this.sumOfDiler() < 17 && this.sumOfDiler() < this.sumOfPlayer()) {
-      this.getOneCard(1);
+  async dilerTurn() {
+    if (this.state !== "player") return;
+    this.state = "dealer";
+    while (Game.calcSum(this.dilerCards) < 17) {
+      this.dilerCards.push(await this.deck.getOneCard());
     }
-    if (this.sumOfDiler() >= 21 || this.sumOfDiler()>= this.sumOfPlayer()) {
-      this.calculateWin();
+    if (Game.calcSum(this.dilerCards) > 21) {
+      this.state = "finished";
+      return "bust";
     }
+    this.state = "finished";
   }
   calculateWin() {
-    let num = null;
-    if (this.sumOfDiler() > this.sumOfPlayer()) {
-      num = 1;
-      this.winOrLoseBord(num);
-    }
-    if (this.sumOfDiler() < this.sumOfPlayer()) {
-      num = 0;
-      this.winOrLoseBord(num);
-    }
-    if (this.sumOfDiler() == this.sumOfPlayer()) {
-      num = 2;
-      this.winOrLoseBord(num);
-    }
-  }
-  winOrLoseBord(num) {
-    const winLoseBord = document.createElement("div");
     this.gameStatus = 4;
-    if (num == 0) {
-      winLoseBord.textContent = "player WIN";
-    }
-    if (num == 1) {
-      winLoseBord.textContent = "diler WIN";
-    }
-    if (num == 2) {
-      winLoseBord.textContent = "It Is a tai";
-    }
-    inBord.appendChild(winLoseBord)
-  }
-
-  async getOneCard(turn) {
-    await this.initDeck;
-    let value = null;
-    await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/draw/?count=1`)
-      .then((res) => res.json())
-      .then((data) => {
-        data.cards.forEach((v) => {
-            
-          value = Number(v.value);
-        });
-
-        if (value == "JACK" || value == "KING" || value == "QUEEN") {
-          value = 10;
-        }
-        if (value == "ACE") {
-          value = 11; //    צריך להוסיף כאן את האפשרות של לבחור אם זה 11 אן 1
-        }
-        return value;   
-      })
-      .then((value) => {
-        if (turn == 0) {
-          this.playerCards.push(value);
-        } else {
-          this.dilerCards.push(value);
-        }
-      });
-  }
-  sumOfPlayer() {
-    let sumP = 0;
-    for (let i = 0; i < this.playerCards.length; i++) {
-      sumP += this.playerCards[i];
-    }
-    return sumP
-}
-sumOfDiler() {
-    let sumD = 0;
-    for (let i = 0; i < this.dilerCards.length; i++) {
-        sumD += this.dilerCards[i];
-    }
-    return sumD
+    const p = Game.calcSum(this.playerCards);
+    const d = Game.calcSum(this.dilerCards);
+    if (p > 21) return "Dealer wins!";
+    if (d > 21) return "Player wins!";
+    if (p > d) return "Player wins!";
+    if (d > p) return "Dealer wins!";
+    return "Tie!";
   }
 }
+
+// const winLoseBord = document.createElement("div");
+// if (p > 21) winLoseBord.textContent = "Dealer wins!";
+// if (d > 21) winLoseBord.textContent = "Player wins!";
+// if (p > d) winLoseBord.textContent = "Player wins!";
+// if (d > p) winLoseBord.textContent = "Dealer wins!";
+// else winLoseBord.textContent = "Tie!";
+// inBord.appendChild(winLoseBord);
