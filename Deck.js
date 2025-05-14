@@ -1,3 +1,5 @@
+// https://deckofcardsapi.com/static/img/back.png
+
 class Deck {
   constructor() {
     this.id = null;
@@ -9,19 +11,46 @@ class Deck {
         this.id = data.deck_id;
       });
   }
-
   async getOneCard() {
     await this.ready;
-    let res = await fetch(
+    const res = await fetch(
       `https://deckofcardsapi.com/api/deck/${this.id}/draw/?count=1`
     );
     const { cards } = await res.json();
-    let v = cards[0].value;
-    // המרת קלף למספר
-    if (["JACK", "QUEEN", "KING"].includes(v)) return 10;
-    if (v === "ACE") return 11;
-    return Number(v);
+    const c = cards[0];
+
+    // המרת value מ-string למספר
+    let numeric = ["JACK", "QUEEN", "KING"].includes(c.value)
+      ? 10
+      : c.value === "ACE"
+      ? 11
+      : Number(c.value);
+
+    return {
+      code: c.code, // למשל "AS"
+      value: numeric, // 11 במקרה של ACE
+      suit: c.suit, // "SPADES" וכו'
+      image: c.image, // URL לתמונה מתוך ה־API
+    };
   }
+  //        - json()
+  // {
+  //   "success": true,
+  //   "deck_id": "brjs00jeibq0",
+  //   "cards": [
+  //     {
+  //       "code": "QC",
+  //       "image": "https://deckofcardsapi.com/static/img/QC.png",
+  //       "images": {
+  //         "svg": "https://deckofcardsapi.com/static/img/QC.svg",
+  //         "png": "https://deckofcardsapi.com/static/img/QC.png"
+  //       },
+  //       "value": "QUEEN",
+  //       "suit": "CLUBS"
+  //     }
+  //   ],
+  //   "remaining": 51
+  // }
 
   // async getOneCard(turn) {
   //   await this.initDeck;

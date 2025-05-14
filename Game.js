@@ -38,7 +38,7 @@ class Game {
     return "continue";
   }
   async dilerTurn() {
-    if (this.status !== "dealer") return;
+    if (this.status !== "player") return;
     this.status = "dealer";
     while (Game.calcSum(this.dilerCards) < 17) {
       this.dilerCards.push(await this.deck.getOneCard());
