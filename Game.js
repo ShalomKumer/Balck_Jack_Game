@@ -1,14 +1,14 @@
-export class Game {
+class Game {
   constructor(deck) {
     this.deck = deck;
-    this.playerCards = []; // seva value of player cards
+    this.playerCards = []; // save value of player cards
     this.dilerCards = []; // seva value of diler cards
-    this.status = 0; // ceep trak of fase of Game
+    this.status = null; // ceep trak of fase of Game
   }
 
   static calcSum(hend) {
-    let sum = hand.reduce((a, b) => a + b, 0);
-    let aces = hand.filter((v) => v === 11).length;
+    let sum = hend.reduce((a, b) => a + b, 0);
+    let aces = hend.filter((v) => v === 11).length;
     while (sum > 21 && aces > 0) {
       sum -= 10; // להפוך ACE מ-11 ל-1
       aces -= 1;
@@ -17,7 +17,7 @@ export class Game {
   }
   //  יוצר את המשחק  - 2 קלפים ללקוח  ו 2 לדילר
   async prepareGame() {
-    this.gameStatus = 1;
+    // this.gameStatus = 1;
     this.playerCards = [];
     this.dilerCards = [];
     for (let i = 0; i < 2; i++) {
@@ -28,29 +28,29 @@ export class Game {
 
   // הגדרה של תור של הלקוח
   async playerTurn() {
-    if (this.state !== "player") return; // stop the fun
+    if (this.status !== "player") return; // stop the fun
 
     this.playerCards.push(await this.deck.getOneCard());
     if (Game.calcSum(this.playerCards) > 21) {
-      this.state = "finished";
+      this.status = "finished";
       return "bust";
     }
     return "continue";
   }
   async dilerTurn() {
-    if (this.state !== "player") return;
-    this.state = "dealer";
+    if (this.status !== "dealer") return;
+    this.status = "dealer";
     while (Game.calcSum(this.dilerCards) < 17) {
       this.dilerCards.push(await this.deck.getOneCard());
     }
     if (Game.calcSum(this.dilerCards) > 21) {
-      this.state = "finished";
+      this.status = "finished";
       return "bust";
     }
-    this.state = "finished";
+    this.status = "finished";
   }
   calculateWin() {
-    this.gameStatus = 4;
+    // this.gameStatus = 4;
     const p = Game.calcSum(this.playerCards);
     const d = Game.calcSum(this.dilerCards);
     if (p > 21) return "Dealer wins!";

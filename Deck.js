@@ -1,4 +1,4 @@
-export class Deck {
+class Deck {
   constructor() {
     this.id = null;
     this.ready = fetch(
