@@ -1,63 +1,84 @@
-class Game {
+// Game.js
+// Game.js
+export class Game {
   constructor(deck) {
-    this.deck = deck;
-    this.playerCards = []; // save value of player cards
-    this.dilerCards = []; // seva value of diler cards
-    this.status = null; // ceep trak of fase of Game
+    this.deck        = deck;
+    this.playerCards = [];   // מערך של אובייקטי קלפים
+    this.dilerCards  = [];   // מערך של אובייקטי קלפים לדילר
+    this.status      = null; // 'player' | 'dealer' | 'finished'
   }
 
-  static calcSum(hend) {
-    let sum = hend.reduce((a, b) => a + b, 0);
-    let aces = hend.filter((v) => v === 11).length;
+  /** מחשבת סכום יד עם התאמת ACE מ־11 ל־1 במידת הצורך */
+  static calcSum(hand) {
+    let sum  = hand.reduce((acc, card) => acc + card.value, 0);
+    let aces = hand.filter(card => card.value === 11).length;
     while (sum > 21 && aces > 0) {
-      sum -= 10; // להפוך ACE מ-11 ל-1
+      sum  -= 10;  // מורידים 10 כדי להפוך ACE מ-11 ל-1
       aces -= 1;
     }
     return sum;
   }
-  //  יוצר את המשחק  - 2 קלפים ללקוח  ו 2 לדילר
+
+  /** מחלק לשחקן ולדילר 2 קלפים ראשוניים */
   async prepareGame() {
-    // this.gameStatus = 1;
     this.playerCards = [];
-    this.dilerCards = [];
+    this.dilerCards  = [];
+
+    // שני קלפים לשחקן
     for (let i = 0; i < 2; i++) {
-      this.playerCards.push(await this.deck.getOneCard());
-      this.dilerCards.push(await this.deck.getOneCard());
+      const card = await this.deck.getOneCard();
+      this.playerCards.push(card);
     }
+    // שני קלפים לדילר
+    for (let i = 0; i < 2; i++) {
+      const card = await this.deck.getOneCard();
+      this.dilerCards.push(card);
+    }
+
+    // מתחילים במצב השחקן
+    this.status = 'player';
   }
 
-  // הגדרה של תור של הלקוח
+  /** לוקח קלף לשחקן (hit) */
   async playerTurn() {
-    if (this.status !== "player") return; // stop the fun
+    if (this.status !== 'player') return;
 
-    this.playerCards.push(await this.deck.getOneCard());
+    const card = await this.deck.getOneCard();
+    this.playerCards.push(card);
+
     if (Game.calcSum(this.playerCards) > 21) {
-      this.status = "finished";
-      return "bust";
+      this.status = 'finished';
+      return 'bust';
     }
-    return "continue";
+    return 'continue';
   }
+
+  /** תור הדילר: מושך עד 17 ומעלה */
   async dilerTurn() {
-    if (this.status !== "player") return;
-    this.status = "dealer";
+    if (this.status !== 'player') return;
+
+    this.status = 'dealer';
     while (Game.calcSum(this.dilerCards) < 17) {
-      this.dilerCards.push(await this.deck.getOneCard());
+      const card = await this.deck.getOneCard();
+      this.dilerCards.push(card);
     }
+    this.status = 'finished';
+
     if (Game.calcSum(this.dilerCards) > 21) {
-      this.status = "finished";
-      return "bust";
+      return 'bust';
     }
-    this.status = "finished";
   }
+
+  /** מחזיר את תוצאת המשחק */
   calculateWin() {
-    // this.gameStatus = 4;
     const p = Game.calcSum(this.playerCards);
     const d = Game.calcSum(this.dilerCards);
-    if (p > 21) return "Dealer wins!";
-    if (d > 21) return "Player wins!";
-    if (p > d) return "Player wins!";
-    if (d > p) return "Dealer wins!";
-    return "Tie!";
+
+    if (p > 21) return 'Dealer wins!';
+    if (d > 21) return 'Player wins!';
+    if (p > d)  return 'Player wins!';
+    if (d > p)  return 'Dealer wins!';
+    return 'Tie!';
   }
 }
 

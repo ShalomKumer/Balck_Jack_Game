@@ -1,38 +1,36 @@
 // https://deckofcardsapi.com/static/img/back.png
 
-class Deck {
+export class Deck {
   constructor() {
-    this.id = null;
-    this.ready = fetch(
-      "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=4"
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        this.id = data.deck_id;
-      });
+    this.id    = null;
+    this.ready = fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=4")
+      .then(res => res.json())
+      .then(data => { this.id = data.deck_id; });
   }
+
   async getOneCard() {
     await this.ready;
-    const res = await fetch(
-      `https://deckofcardsapi.com/api/deck/${this.id}/draw/?count=1`
-    );
-    const { cards } = await res.json();
-    const c = cards[0];
 
-    // המרת value מ-string למספר
-    let numeric = ["JACK", "QUEEN", "KING"].includes(c.value)
+    const res       = await fetch(`https://deckofcardsapi.com/api/deck/${this.id}/draw/?count=1`);
+    const { cards } = await res.json();
+    const c         = cards[0];
+
+    const numeric = ["JACK","QUEEN","KING"].includes(c.value)
       ? 10
       : c.value === "ACE"
-      ? 11
-      : Number(c.value);
+        ? 11
+        : Number(c.value);
 
     return {
-      code: c.code, // למשל "AS"
-      value: numeric, // 11 במקרה של ACE
-      suit: c.suit, // "SPADES" וכו'
-      image: c.image, // URL לתמונה מתוך ה־API
+      code:  c.code,  
+      value: numeric, 
+      suit:  c.suit,  
+      image: c.image 
     };
   }
+}
+
+
   //        - json()
   // {
   //   "success": true,
@@ -80,4 +78,4 @@ class Deck {
   //       }
   //     });
   //   }
-}
+
